@@ -1,13 +1,26 @@
 package com.example.mytestdb.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import javax.persistence.*;
 import java.util.Map;
 
+@Entity
+@Table(name = "movies")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Movie {
+    @Id
+    @Column(name="id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    @Column(name="name")
     private String name;
+    @Column(name="year")
     private int year;
+    @Column(name="imdb")
     private String imdb;
-    private float imdb_rating;
+    @Column(name="imdb_rating")
+    private double imdb_rating;
 
     public String getImdb() {
         return imdb;
@@ -24,7 +37,7 @@ public class Movie {
             } catch (NumberFormatException e) {}
         if(map.containsKey("rating"))
             try {
-                this.setImdb_rating(Float.parseFloat(map.get("rating")));
+                this.setImdb_rating(Double.parseDouble(map.get("rating")));
             } catch (NumberFormatException e) {}
 
     }
@@ -53,11 +66,11 @@ public class Movie {
         this.year = year;
     }
 
-    public float getImdb_rating() {
+    public double getImdb_rating() {
         return imdb_rating;
     }
 
-    public void setImdb_rating(float imdb_rating) {
+    public void setImdb_rating(double imdb_rating) {
         this.imdb_rating = imdb_rating;
     }
 }

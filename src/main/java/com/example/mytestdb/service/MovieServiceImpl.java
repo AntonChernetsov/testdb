@@ -1,33 +1,43 @@
 package com.example.mytestdb.service;
 
 import com.example.mytestdb.model.Movie;
+import com.example.mytestdb.repository.MoviesRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-
 import com.mashape.unirest.http.exceptions.UnirestException;
-import org.springframework.http.HttpRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
-import sun.net.www.http.HttpClient;
 
-import java.io.BufferedReader;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.util.*;
 
 @Service
 public class MovieServiceImpl implements MovieService{
 
-    private static Map<Integer,Movie> movie_map = new HashMap<>();
-    private static int id_init = 0;
+
+
+    @Autowired
+    private MoviesRepository moviesRepository;
+
+    @PersistenceContext
+    private EntityManager em;
+
+
+    public boolean movieExistsByName(String name) {
+        return em.createQuery(String.format("select c.id from Movie c where c.name='%s'",name)).getResultList().size()>0;
+    }
 
     @Override
     public void create(Movie movie) {
-        movie.setId(++id_init);
+
+    if(movieExistsByName(movie.getName()))
+        return;
+
         try {
             movie.setImdb(getImdbId(movie.getName()));
             movie.setImdbData(getImdbData(movie.getImdb()));
@@ -36,7 +46,8 @@ public class MovieServiceImpl implements MovieService{
         } catch (IOException | UnirestException e) {
             e.printStackTrace();
         }
-        movie_map.put(id_init,movie);
+
+        moviesRepository.save(movie);
     }
 
     private Map<String,String> getImdbData(String imdb) throws IOException, UnirestException {
@@ -77,24 +88,35 @@ public class MovieServiceImpl implements MovieService{
 
     @Override
     public List<Movie> readAll() {
-        return new ArrayList<>(movie_map.values());
+        return moviesRepository.findAll();
     }
 
     @Override
     public Movie read(int id) {
-        return movie_map.get(id);
+
+        return moviesRepository.getOne(id);
     }
 
     @Override
     public boolean update(Movie movie, int id) {
-        if (movie_map.containsKey(id)){
-            movie_map.put(id,movie);
-            return true;}
+
+        if (moviesRepository.existsById(id)) {
+            movie.setId(id);
+            moviesRepository.save(movie);
+            return true;
+        }
+
         return false;
     }
 
     @Override
     public boolean delete(int id) {
-        return movie_map.remove(id)!=null;
+
+        if (moviesRepository.existsById(id)) {
+            moviesRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
+
 }
