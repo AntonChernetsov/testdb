@@ -24,9 +24,11 @@ public class MovieController {
     }
 
     @PostMapping(value = "/movies")
-    public ResponseEntity<?> create(@RequestBody Movie movie) {
-        movieService.create(movie);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<Movie> create(@RequestBody Movie movie) {
+        final Movie movieFounded = movieService.create(movie);
+        return movieFounded != null?
+        new ResponseEntity<>(movieFounded,HttpStatus.CREATED):
+        new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping(value = "/movies")
@@ -40,10 +42,10 @@ public class MovieController {
 
     @GetMapping(value = "/movies/{id}")
     public ResponseEntity<Movie> read(@PathVariable(name = "id") int id) {
-        final Movie client = movieService.read(id);
+        final Movie movie = movieService.read(id);
 
-        return client != null
-                ? new ResponseEntity<>(client, HttpStatus.OK)
+        return movie != null
+                ? new ResponseEntity<>(movie, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 

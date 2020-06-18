@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface MovieService {
 
-    void create(Movie movie);
+    Movie create(Movie movie);
 
     List<Movie> readAll();
 

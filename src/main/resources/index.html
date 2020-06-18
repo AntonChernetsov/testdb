@@ -7,10 +7,99 @@
 <body>
 <div align="center">
     <h2>Movie to search</h2>
-    <form method="post" enctype="application/json" action="mytestdb/movies">
+    <form id="newMovie" method="post"  action="mytestdb/movies">
         <input type="text" name="name" />
         <input type="submit" value="Search" />
     </form>
+
+    <form id="getMovieList" method="get" action="mytestdb/movies">
+         <input type="submit" value="Get movie list" />
+    </form>
+
 </div>
+
+<div id="result" align="center">
+
+</div>
+
+<script>
+
+    document.getElementById('newMovie').addEventListener('submit', submitForm);
+
+    async function getMovieList(event) {
+        event.preventDefault();
+        let request = new Request(event.target.action, {
+            method: 'GET'
+        });
+        let response = await fetch(request);
+        if (response.ok) {
+            let json = await response.json();
+            // var data = json.parse();
+            var list = '<table>';
+            for (var key in json) {
+                list += '<tr></tr>';
+                var json2 = json[key];
+                for (var key2 in json2) {
+                    list += '<th>' +  json2[key2] + '</th>';
+                }
+            }
+            list +='</table>';
+
+
+            document.getElementById('result').innerHTML = list ;
+            // alert(response.status+ "\n\r name - " + json.name + "\n\r rating - " + json.imdb_rating);
+        } else {
+            alert("Error getting data " + response.status);
+        }
+
+    }
+
+    document.getElementById('getMovieList').addEventListener('submit', getMovieList);
+
+    async function submitForm(event) {
+        // Отменяем стандартное поведение браузера с отправкой формы
+        event.preventDefault();
+
+        // event.target — это HTML-элемент form
+        let formData = new FormData(event.target);
+
+        // Собираем данные формы в объект
+        let obj = {};
+        formData.forEach((value, key) => obj[key] = value);
+
+        // Собираем запрос к серверу
+        let request = new Request(event.target.action, {
+            method: 'POST',
+            body: JSON.stringify(obj),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        // Отправляем (асинхронно!)
+        let response = await fetch(request);
+        if (response.ok) {
+            let json = await response.json();
+            // var data = json.parse();
+            var list = '<table>';
+            for (var key in json) {
+                list += '<th>' + key + ': ' + json[key] + '</th>';
+                }
+            list +='</table>';
+            document.getElementById('result').innerHTML = '<ul>' + list + '</ul>';
+            // alert(response.status+ "\n\r name - " + json.name + "\n\r rating - " + json.imdb_rating);
+        }
+        else {
+            alert("Error getting data "+response.status);
+        }
+
+        // Код после fetch выполнится ПЕРЕД получением ответа
+        // на запрос, потому что запрос выполняется асинхронно,
+        // отдельно от основного кода
+        console.log('Запрос отправляется');
+    }
+
+</script>
+
 </body>
 </html>

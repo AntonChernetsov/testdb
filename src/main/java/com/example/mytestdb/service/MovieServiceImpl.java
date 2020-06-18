@@ -28,15 +28,18 @@ public class MovieServiceImpl implements MovieService{
     private EntityManager em;
 
 
-    public boolean movieExistsByName(String name) {
-        return em.createQuery(String.format("select c.id from Movie c where c.name='%s'",name)).getResultList().size()>0;
+    public Movie movieExistsByName(String name) {
+        List movies = em.createQuery(String.format("select c.id from Movie c where c.name='%s'",name)).getResultList();
+        if (movies.size()>0)
+        return moviesRepository.getOne((Integer) movies.get(0));
+        else
+            return  null;
     }
 
     @Override
-    public void create(Movie movie) {
+    public Movie create(Movie movie) {
 
-    if(movieExistsByName(movie.getName()))
-        return;
+
 
         try {
             movie.setImdb(getImdbId(movie.getName()));
@@ -47,7 +50,15 @@ public class MovieServiceImpl implements MovieService{
             e.printStackTrace();
         }
 
-        moviesRepository.save(movie);
+        Movie movieFounded = movieExistsByName(movie.getName());
+        if(movieFounded!=null)
+            return movieFounded;
+
+        if(!movie.getImdb().equals("na")) {
+            moviesRepository.save(movie);
+            return movie;
+        }
+        else return null;
     }
 
     private Map<String,String> getImdbData(String imdb) throws IOException, UnirestException {
@@ -62,6 +73,7 @@ public class MovieServiceImpl implements MovieService{
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(jsonData);
         map.put("year",rootNode.path("year").textValue());
+        map.put("title",rootNode.path("title").textValue());
         map.put("rating",rootNode.path("rating").textValue());
         return map;
     }

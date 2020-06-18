@@ -39,6 +39,10 @@ public class Movie {
             try {
                 this.setImdb_rating(Double.parseDouble(map.get("rating")));
             } catch (NumberFormatException e) {}
+        if(map.containsKey("title"))
+            try {
+                this.setName(map.get("title"));
+            } catch (NumberFormatException e) {}
 
     }
 
